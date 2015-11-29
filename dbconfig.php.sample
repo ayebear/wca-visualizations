@@ -1,0 +1,10 @@
+<?php
+
+function getDb() {
+	$db = new mysqli("localhost", "username", "password", "db_name");
+	if ($db->connect_errno) {
+		printf("Connect failed: %s\n", $db->connect_error);
+		exit();
+	}
+	return $db;
+}
