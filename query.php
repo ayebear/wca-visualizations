@@ -25,6 +25,9 @@ Output:
 	}
 */
 
-
+/*
+select countryCode, min(best) as result from AllResults where best>0 and eventId='333' and year<2013 group by countryCode;
+select countryCode, year, min(best) as result from AllResults where best>0 and eventId='333' group by countryCode, year;
+*/
 
 $db->close();
