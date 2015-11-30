@@ -1,7 +1,66 @@
 <?php
 include 'dbconfig.php';
 
-$db = getDb();
+function getTimedStats($db, $event, $gender, $stat) {
+	$functions = ['topBest' => 'min', 'topAverage' => 'min', 'overallBest' => 'avg', 'overallAverage' => 'avg'];
+	$fields = ['topBest' => 'best', 'topAverage' => 'average', 'overallBest' => 'best', 'overallAverage' => 'average'];
+
+	$data = [];
+	$funcName = $functions[$stat];
+	$fieldName = $fields[$stat];
+
+	if (!$funcName) {
+		return [];
+	}
+
+	$results = $db->query("select countryCode, year, $funcName($fieldName) as result from AllResults
+		where $fieldName>0 and eventId='$event' $genderQuery group by countryCode, year");
+	if ($results) {
+		while ($row = $results->fetch_assoc()) {
+			$data[$row['countryCode']][$row['year']] = $row['result'] / 100.0;
+		}
+	}
+	return $data;
+}
+
+function getStats($db, $event, $gender, $stat) {
+	$data = [];
+
+	// TODO: Use prepared statements
+	// TODO: Handle other statistics
+
+	$genderQuery = '';
+	if ($gender && $gender != '' && $gender != '*') {
+		$genderQuery = "and gender='$gender'";
+	}
+
+	switch ($stat) {
+		case 'compsVisitedBest':
+			break;
+
+		case 'compsVisitedAverage':
+			break;
+
+		case 'numCubers':
+			break;
+
+		default:
+			$data = getTimedStats($db, $event, $gender, $stat);
+			break;
+	}
+
+
+	return json_encode($data);
+}
+
+if ($_GET['event'] && $_GET['stat']) {
+	$db = getDb();
+	$jsonResults = getStats($db, $_GET['event'], $_GET['gender'], $_GET['stat']);
+	echo $jsonResults;
+	$db->close();
+}
+
+
 
 /*
 Inputs:
@@ -30,4 +89,3 @@ select countryCode, min(best) as result from AllResults where best>0 and eventId
 select countryCode, year, min(best) as result from AllResults where best>0 and eventId='333' group by countryCode, year;
 */
 
-$db->close();
