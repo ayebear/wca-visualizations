@@ -25,13 +25,6 @@ Output:
 	}
 */
 
-/*
-select cellName from Events where format='time' order by rank;
-*/
 
-if ($result = $db->query("select * from Events;")) {
-	printf("Select returned %d rows.\n", $result->num_rows);
-	$result->close();
-}
 
 $db->close();

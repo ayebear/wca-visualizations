@@ -75,9 +75,40 @@ function dropTables($db) {
 	}
 }
 
+function setupPrimaryKeys($db) {
+	// Setup primary keys
+	$db->query('alter ignore table Persons add unique (id)');
+	$db->query('alter table Events add primary key(id)');
+	$db->query('alter table Persons add primary key(id)');
+	$db->query('alter table Countries add primary key(id)');
+	$db->query('alter table Competitions add primary key(id)');
+	echo "Setup primary keys.<br>";
+}
+
+function generateResults($db) {
+	// Setup AllResults table for use with generating statistics
+	$db->query('drop table if exists AllResults');
+
+	$db->query('create view ResultsView as select competitionId,eventId,personId,best,average,countryId,gender
+		from Results join Persons on Results.personId=Persons.id');
+
+	$db->query('create table AllResults (competitionId varchar(32), eventId varchar(6), personId varchar(10),
+		best int(11), average int(11), countryId varchar(50), gender char(1), year smallint(5) unsigned)');
+
+	$db->query('insert into AllResults select competitionId,eventId,personId,best,average,countryId,gender,year
+		from ResultsView join Competitions on ResultsView.competitionId=Competitions.id');
+
+	$db->query('drop view ResultsView');
+
+	echo "Setup AllResults table.<br>";
+}
+
 $db = getDb();
 
 stripTables($db);
 dropTables($db);
+setupPrimaryKeys($db);
+generateResults($db);
+echo "Import script finished.<br>";
 
 $db->close();
