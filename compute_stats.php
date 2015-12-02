@@ -5,6 +5,8 @@ include 'common.php';
 /*
 This file computes statistics and saves them to a new table in the database.
 
+Note: May use this type of table for caching the results.
+
 Statistics table with example values:
 	eventId
 		'333'
@@ -85,4 +87,4 @@ function computeStats() {
 	$db->close();
 }
 
-computeStats();
+// computeStats();

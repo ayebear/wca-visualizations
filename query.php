@@ -2,17 +2,22 @@
 include 'dbconfig.php';
 
 function getTimedStats($db, $event, $gender, $stat) {
-	$functions = ['topBest' => 'min', 'topAverage' => 'min', 'overallBest' => 'avg', 'overallAverage' => 'avg'];
-	$fields = ['topBest' => 'best', 'topAverage' => 'average', 'overallBest' => 'best', 'overallAverage' => 'average'];
+	$mapping = ['topBest' => ['min', 'best'],
+				'topAverage' => ['min', 'average'],
+				'overallBest' => ['avg', 'best'],
+				'overallAverage' => ['avg', 'average']];
 
 	$data = [];
-	$funcName = $functions[$stat];
-	$fieldName = $fields[$stat];
 
-	if (!$funcName) {
+	// Get function and field names from statistic name
+	$funcName = $mapping[$stat][0];
+	$fieldName = $mapping[$stat][1];
+
+	if (!$funcName || !$fieldName) {
 		return [];
 	}
 
+	// Compute specified statistics for each country and year
 	$results = $db->query("select countryCode, year, $funcName($fieldName) as result from AllResults
 		where $fieldName>0 and eventId='$event' $genderQuery group by countryCode, year");
 	if ($results) {
@@ -83,9 +88,3 @@ Output:
 	  }
 	}
 */
-
-/*
-select countryCode, min(best) as result from AllResults where best>0 and eventId='333' and year<2013 group by countryCode;
-select countryCode, year, min(best) as result from AllResults where best>0 and eventId='333' group by countryCode, year;
-*/
-
