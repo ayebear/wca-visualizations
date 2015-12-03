@@ -1,18 +1,33 @@
-function parseResults(response) {
-	var responseObj = JSON.parse(response);
-	var resultData = {};
+var results = {};
+// results[year][country] = result
 
-	// Just use current year for now
+var yearRange = [2003, 2016];
+
+function parseResults(response) {
+	var resultData = {};
+	var responseObj = JSON.parse(response);
+
+	// Convert country:year:result format to year:country:result
+	// Also calculate missing years' data
 	for (var country in responseObj) {
 		if (responseObj.hasOwnProperty(country)) {
 			var minResult = -1;
-			for (year in responseObj[country]) {
-				newResult = responseObj[country][year];
-				if (minResult == -1 || newResult < minResult) {
-					minResult = newResult;
+			// Iterate through all years
+			for (var year = yearRange[0]; year < yearRange[1]; ++year) {
+				// Calculate minimum result from all previous years
+				if (year in responseObj[country]) {
+					newResult = responseObj[country][year];
+					if (minResult == -1 || newResult < minResult) {
+						minResult = newResult;
+					}
+				}
+				// Set result in dictionary
+				if (minResult > 0) {
+					if (!(year in resultData))
+						resultData[year] = {}
+					resultData[year][country] = minResult;
 				}
 			}
-			resultData[country] = minResult;
 		}
 	}
 
@@ -30,7 +45,15 @@ function setupVectorMap(resultData) {
 			}]
 		},
 		onRegionTipShow: function(e, el, code){
-			el.html(el.html() + ': ' + resultData[code]);
+			// var test = resultData;
+			var mapObject = $('#world-map').vectorMap('get', 'mapObject');
+			var test = mapObject.series.regions[0].values;
+
+			var resultText = 'N/A';
+			if (code in test) {
+				resultText = test[code] + ' seconds';
+			}
+			el.html(el.html() + ': ' + resultText);
 		}
 	});
 }
@@ -41,13 +64,19 @@ function refreshResults(params) {
 		type: 'get',
 		data: params,
 		success: function(response) {
-			resultData = parseResults(response);
-			setupVectorMap(resultData);
+			results = parseResults(response);
+			setupVectorMap(results[2015]);
 		},
 		error: function(xhr) {
 			alert("Error: " + xhr);
 		}
 	});
+}
+
+function updateMapYear(year) {
+	// setupVectorMap(results[year]);
+	var mapObject = $('#world-map').vectorMap('get', 'mapObject');
+	mapObject.series.regions[0].setValues(results[year]);
 }
 
 $(function(){
@@ -56,4 +85,15 @@ $(function(){
 		'gender': 'm',
 		'stat': 'topBest'
 	});
+});
+
+$(function() {
+	var currentValue = $('#currentValue');
+
+	$('#yearSlider').on("input", function(){
+	    currentValue.html(this.value);
+	    updateMapYear(this.value);
+	});
+
+	$('#yearSlider').change();
 });

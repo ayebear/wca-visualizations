@@ -23,6 +23,9 @@
 	</form>
 </div>
 
+<input id="yearSlider" type="range" min="2003" max="2015" style="width:300px" />
+<p class="note">Year: <span id="currentValue">2015</span></p>
+
 <?php
 /*
 This file renders the initial front-end interface.
