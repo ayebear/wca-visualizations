@@ -1,7 +1,7 @@
 var results = {};
-// results[year][country] = result
 
 var yearRange = [2003, 2016];
+var currentYear = 2015;
 
 function parseResults(response) {
 	var resultData = {};
@@ -34,6 +34,14 @@ function parseResults(response) {
 	return resultData;
 }
 
+function getMapObject() {
+	return $('#world-map').vectorMap('get', 'mapObject');
+}
+
+function getMapRegion() {
+	return getMapObject().series.regions[0];
+}
+
 function setupVectorMap(resultData) {
 	$('#world-map').vectorMap({
 		map: 'world_mill',
@@ -45,27 +53,25 @@ function setupVectorMap(resultData) {
 			}]
 		},
 		onRegionTipShow: function(e, el, code){
-			// var test = resultData;
-			var mapObject = $('#world-map').vectorMap('get', 'mapObject');
-			var test = mapObject.series.regions[0].values;
+			var values = getMapRegion().values;
 
 			var resultText = 'N/A';
-			if (code in test) {
-				resultText = test[code] + ' seconds';
+			if (code in values) {
+				resultText = values[code] + ' seconds';
 			}
 			el.html(el.html() + ': ' + resultText);
 		}
 	});
 }
 
-function refreshResults(params) {
+function refreshResults(params, callback) {
 	$.ajax({
 		url: 'query.php',
 		type: 'get',
 		data: params,
 		success: function(response) {
 			results = parseResults(response);
-			setupVectorMap(results[2015]);
+			callback(results);
 		},
 		error: function(xhr) {
 			alert("Error: " + xhr);
@@ -74,9 +80,8 @@ function refreshResults(params) {
 }
 
 function updateMapYear(year) {
-	// setupVectorMap(results[year]);
-	var mapObject = $('#world-map').vectorMap('get', 'mapObject');
-	mapObject.series.regions[0].setValues(results[year]);
+	currentYear = year;
+	getMapRegion().setValues(results[year]);
 }
 
 $(function(){
@@ -84,6 +89,8 @@ $(function(){
 		'event': '333',
 		'gender': 'm',
 		'stat': 'topBest'
+	}, function() {
+		setupVectorMap(results[currentYear]);
 	});
 });
 
@@ -91,9 +98,42 @@ $(function() {
 	var currentValue = $('#currentValue');
 
 	$('#yearSlider').on("input", function(){
-	    currentValue.html(this.value);
-	    updateMapYear(this.value);
+		currentValue.html(this.value);
+		updateMapYear(this.value);
 	});
 
 	$('#yearSlider').change();
+});
+
+/*function data_max(arr) {
+	return Math.max.apply(null, Object.keys(arr).map(function(e) {return arr[e];}));
+}
+
+function data_min(arr) {
+	return Math.min.apply(null, Object.keys(arr).map(function(e) {return arr[e];}));
+}*/
+
+$(function(){
+	$('.ajaxSelect').change(function(e) {
+		// Get parameters from HTML select inputs
+		var params = {};
+		$(".ajaxSelect").each(function() {
+			var name = $(this).attr("name");
+			params[name] = this.value;
+		});
+
+		// Refresh map with new data
+		refreshResults(params, function() {
+			getMapObject().reset();
+			getMapObject().clearSelectedRegions();
+			getMapRegion().clear();
+
+			// May have to re-create map to call constructor and re-calculate color scale
+			// alert('New min: ' + data_min(results[currentYear]));
+			// getMapRegion().scale.setMin(data_min(results[currentYear]));
+			// getMapRegion().scale.setMax(data_max(results[currentYear]));
+
+			getMapRegion().setValues(results[currentYear]);
+		});
+	});
 });

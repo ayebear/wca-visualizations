@@ -1,7 +1,7 @@
 <?php
 include 'dbconfig.php';
 
-function getTimedStats($db, $event, $gender, $stat) {
+function getTimedStats($db, $event, $genderQuery, $stat) {
 	$mapping = ['topBest' => ['min', 'best'],
 				'topAverage' => ['min', 'average'],
 				'overallBest' => ['avg', 'best'],
@@ -50,7 +50,7 @@ function getStats($db, $event, $gender, $stat) {
 			break;
 
 		default:
-			$data = getTimedStats($db, $event, $gender, $stat);
+			$data = getTimedStats($db, $event, $genderQuery, $stat);
 			break;
 	}
 
