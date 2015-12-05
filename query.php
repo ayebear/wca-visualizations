@@ -1,6 +1,25 @@
 <?php
 include 'dbconfig.php';
 
+/*
+Inputs:
+	Event (333/444/555)
+	Gender (m/f/*)
+	Statistic name (overall/top of average/best times)
+
+Output:
+	Example JSON object:
+	{
+		"US": {
+			"1982": 22.95,
+			"2014": 5.93,
+			"2015": 4.9
+		},
+		...
+	}
+*/
+
+
 function getTimedStats($db, $event, $genderQuery, $stat) {
 	$mapping = ['topBest' => ['min', 'best'],
 				'topAverage' => ['min', 'average'],
@@ -31,14 +50,17 @@ function getTimedStats($db, $event, $genderQuery, $stat) {
 function getStats($db, $event, $gender, $stat) {
 	$data = [];
 
-	// TODO: Use prepared statements
-	// TODO: Handle other statistics
+	// Stop tem b1tch3s frum injectin SQL
+	$event = $db->real_escape_string($event);
+	$gender = $db->real_escape_string($gender);
+	$stat = $db->real_escape_string($stat);
 
 	$genderQuery = '';
 	if ($gender && $gender != '' && $gender != '*') {
 		$genderQuery = "and gender='$gender'";
 	}
 
+	// TODO: Handle additional statistics
 	switch ($stat) {
 		case 'compsVisitedBest':
 			break;
@@ -64,27 +86,3 @@ if ($_GET['event'] && $_GET['stat']) {
 	echo $jsonResults;
 	$db->close();
 }
-
-
-
-/*
-Inputs:
-	Event (3x3/4x4/5x5)
-	Gender (Male/female/any)
-	Result type (overall/top of average/best times)
-
-Output:
-	JSON object:
-	{
-	  "2014": {
-	    "USA": 8.50,
-	    "CN": 9.67,
-	    "AS": 7.23
-	  },
-	  "2015": {
-	    "USA": 7.54,
-	    "CN": 9.22,
-	    "AS": 6.77
-	  }
-	}
-*/
