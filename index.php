@@ -41,6 +41,7 @@ All requests to the actual data for the map is handled by query.php and is loade
 		<option value="compsVisitedBest">Competitions Visited (Best)</option>
 		<option value="compsVisitedAverage">Competitions Visited (Average)</option>
 		<option value="numCubers">Number Of Cubers</option>
+		<option value="numResults">Number Of Results</option>
 	</select>
 
 	<input id="yearSlider" type="range" min="2003" max="2015" style="width:300px"/>

@@ -47,6 +47,42 @@ function getTimedStats($db, $event, $genderQuery, $stat) {
 	return $data;
 }
 
+function getCompsStats($db, $event, $genderQuery, $funcName) {
+	// Compute number of competitions visited for each country and year
+	$results = $db->query("select countryCode, year, $funcName(personId) as result from AllResults
+		where personId>0 and eventId='$event' $genderQuery group by countryCode, year");
+	if ($results) {
+		while ($row = $results->fetch_assoc()) {
+			$data[$row['countryCode']][$row['year']] = $row['result'];
+		}
+	}
+	return $data;
+}
+
+function getCubersStats($db, $event, $genderQuery) {
+	// Compute number of competitions visited for each country and year
+	$results = $db->query("select countryCode, year, count(distinct personId) as result from AllResults
+		where eventId='$event' $genderQuery group by countryCode, year");
+	if ($results) {
+		while ($row = $results->fetch_assoc()) {
+			$data[$row['countryCode']][$row['year']] = $row['result'];
+		}
+	}
+	return $data;
+}
+
+function getResultsStats($db, $event, $genderQuery) {
+	// Compute number of competitions visited for each country and year
+	$results = $db->query("select countryCode, year, count(*) as result from AllResults
+		where eventId='$event' $genderQuery group by countryCode, year");
+	if ($results) {
+		while ($row = $results->fetch_assoc()) {
+			$data[$row['countryCode']][$row['year']] = $row['result'];
+		}
+	}
+	return $data;
+}
+
 function getStats($db, $event, $gender, $stat) {
 	$data = [];
 
@@ -63,12 +99,19 @@ function getStats($db, $event, $gender, $stat) {
 	// TODO: Handle additional statistics
 	switch ($stat) {
 		case 'compsVisitedBest':
+			$data = getCompsStats($db, $event, $genderQuery, "min");
 			break;
 
 		case 'compsVisitedAverage':
+			$data = getCompsStats($db, $event, $genderQuery, "avg");
 			break;
 
 		case 'numCubers':
+			$data = getCubersStats($db, $event, $genderQuery);
+			break;
+
+		case 'numResults':
+			$data = getResultsStats($db, $event, $genderQuery);
 			break;
 
 		default:

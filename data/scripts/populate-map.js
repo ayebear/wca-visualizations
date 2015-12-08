@@ -2,31 +2,43 @@ var results = {};
 
 var yearRange = [2003, 2016];
 var currentYear = 2015;
+var currentStatText = 'seconds';
+var currentStat = 'topBest';
 
-function parseResults(response) {
+function parseResults(response, stat) {
 	var resultData = {};
 	var responseObj = JSON.parse(response);
+	var startVal = -1;
+
+	var compFunc = function(a, b) {
+		return (a < b);
+	}
+
+	if (stat == 'numCubers' || stat == 'numResults') {
+		startVal = 99999999;
+		compFunc = function(a, b) {
+			return (a > b);
+		}
+	}
 
 	// Convert country:year:result format to year:country:result
 	// Also calculate missing years' data
 	for (var country in responseObj) {
-		if (responseObj.hasOwnProperty(country)) {
-			var minResult = -1;
-			// Iterate through all years
-			for (var year = yearRange[0]; year < yearRange[1]; ++year) {
-				// Calculate minimum result from all previous years
-				if (year in responseObj[country]) {
-					newResult = responseObj[country][year];
-					if (minResult == -1 || newResult < minResult) {
-						minResult = newResult;
-					}
+		var minResult = startVal;
+		// Iterate through all years
+		for (var year = yearRange[0]; year < yearRange[1]; ++year) {
+			// Calculate minimum result from all previous years
+			if (year in responseObj[country]) {
+				newResult = Number(responseObj[country][year]);
+				if (minResult == startVal || compFunc(newResult, minResult)) {
+					minResult = newResult;
 				}
-				// Set result in dictionary
-				if (minResult > 0) {
-					if (!(year in resultData))
-						resultData[year] = {}
-					resultData[year][country] = minResult;
-				}
+			}
+			// Set result in dictionary
+			if (minResult != startVal) {
+				if (!(year in resultData))
+					resultData[year] = {}
+				resultData[year][country] = minResult;
 			}
 		}
 	}
@@ -43,12 +55,17 @@ function getMapRegion() {
 }
 
 function setupVectorMap(resultData) {
+	var colorScale = ['#FFFF00', '#00FF00', '#0000FF', '#FF0000', '#000000'];
+	if (currentStat == 'numCubers' || currentStat == 'numResults') {
+		colorScale.reverse();
+	}
+
 	$('#world-map').vectorMap({
 		map: 'world_mill',
 		series: {
 			regions: [{
 				values: resultData,
-				scale: ['#FFFF00', '#00FF00', '#0000FF', '#FF0000', '#000000'],
+				scale: colorScale,
 				normalizeFunction: 'polynomial'
 			}]
 		},
@@ -57,7 +74,7 @@ function setupVectorMap(resultData) {
 
 			var resultText = 'N/A';
 			if (code in values) {
-				resultText = values[code] + ' seconds';
+				resultText = values[code] + ' ' + currentStatText;
 			}
 			el.html(el.html() + ': ' + resultText);
 		}
@@ -70,7 +87,7 @@ function refreshResults(params, callback) {
 		type: 'get',
 		data: params,
 		success: function(response) {
-			results = parseResults(response);
+			results = parseResults(response, params.stat);
 			callback(results);
 		},
 		error: function(xhr) {
@@ -128,9 +145,22 @@ $(function(){
 			params[name] = this.value;
 		});
 
+		// Set tooltip text based on stat selected
+		if (params.stat == 'numCubers')
+			currentStatText = 'cubers';
+		else if (params.stat == 'compsVisitedBest' || params.stat == 'compsVisitedAverage')
+			currentStatText = 'competitions visited';
+		else if (params.stat == 'numResults')
+			currentStatText = 'results';
+		else
+			currentStatText = 'seconds';
+
+		// alert(params.stat);
+
 		// Refresh map with new data
 		refreshResults(params, function() {
 			$("#world-map").empty();
+			currentStat = params.stat;
 			setupVectorMap(results[currentYear]);
 
 			/*getMapObject().reset();
