@@ -12,6 +12,8 @@ All requests to the actual data for the map is handled by query.php and is loade
 <div id="world-map" style="width: 100%; height: 600px"></div>
 <script src="data/scripts/populate-map.js"></script>
 
+<br>
+
 <div id="input-form">
 	<select class="ajaxSelect" name="event">
 		<?php
@@ -36,6 +38,9 @@ All requests to the actual data for the map is handled by query.php and is loade
 		<option value="topAverage">Top Average</option>
 		<option value="overallBest">Overall Best</option>
 		<option value="overallAverage">Overall Average</option>
+		<option value="compsVisitedBest">Competitions Visited (Best)</option>
+		<option value="compsVisitedAverage">Competitions Visited (Average)</option>
+		<option value="numCubers">Number Of Cubers</option>
 	</select>
 
 	<input id="yearSlider" type="range" min="2003" max="2015" style="width:300px"/>
@@ -43,5 +48,8 @@ All requests to the actual data for the map is handled by query.php and is loade
 		<span id="currentValue">2015</span>
 	</p>
 </div>
+
+<br>
+<p><b>Note:</b> Data is from <a href="https://www.worldcubeassociation.org">https://www.worldcubeassociation.org</a>, dated 2015-11-28, and may not represent actual information. The actual information can be found here: <a href="https://www.worldcubeassociation.org/results">https://www.worldcubeassociation.org/results</a>.</p>
 
 <?php include 'footer.php'; ?>

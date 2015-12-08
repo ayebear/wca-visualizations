@@ -81,10 +81,13 @@ function refreshResults(params, callback) {
 
 function updateMapYear(year) {
 	currentYear = year;
-	getMapRegion().setValues(results[year]);
+	// getMapRegion().setValues(results[year]);
+	$("#world-map").empty();
+	setupVectorMap(results[currentYear]);
 }
 
 $(function(){
+	// Refresh and setup map
 	refreshResults({
 		'event': '333',
 		'gender': 'm',
@@ -92,9 +95,12 @@ $(function(){
 	}, function() {
 		setupVectorMap(results[currentYear]);
 	});
-});
 
-$(function() {
+	// Set default year slider value
+	var yearSlider = document.getElementById("yearSlider");
+	yearSlider.value = 2015;
+
+	// Setup year slider handler
 	var currentValue = $('#currentValue');
 
 	$('#yearSlider').on("input", function(){
@@ -124,16 +130,18 @@ $(function(){
 
 		// Refresh map with new data
 		refreshResults(params, function() {
-			getMapObject().reset();
+			$("#world-map").empty();
+			setupVectorMap(results[currentYear]);
+
+			/*getMapObject().reset();
 			getMapObject().clearSelectedRegions();
 			getMapRegion().clear();
+			getMapRegion().setValues(results[currentYear]);*/
 
 			// May have to re-create map to call constructor and re-calculate color scale
 			// alert('New min: ' + data_min(results[currentYear]));
 			// getMapRegion().scale.setMin(data_min(results[currentYear]));
 			// getMapRegion().scale.setMax(data_max(results[currentYear]));
-
-			getMapRegion().setValues(results[currentYear]);
 		});
 	});
 });
